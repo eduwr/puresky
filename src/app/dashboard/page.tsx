@@ -36,10 +36,15 @@ export default async function DashboardPage() {
         </CardTitle>
         <CardContent>
           <div className="flex items-center justify-center opacity-80">
-            <span>{profile.followersCount}</span>
             <span className="font-light text-xs ml-1 opacity-80">
               Followers
             </span>
+            <span>{profile.followersCount}</span>
+
+            <span className="font-light text-xs ml-1 opacity-80">
+              Following
+            </span>
+            <span>{profile.followsCount}</span>
           </div>
           <p>{profile.description}</p>
         </CardContent>

@@ -15,10 +15,8 @@ export async function signInAction(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState | undefined> {
-  console.log("getting here");
   const data = Object.fromEntries(formData);
   const result = signInSchema.safeParse(data);
-  console.log(result);
   if (!result.success) {
     const fields: Record<string, string> = {};
     for (const key of Object.keys(formData)) {
@@ -35,11 +33,9 @@ export async function signInAction(
     };
   }
 
-  console.log("before session");
-  // ljgq-nljq-zzqy-lsxd
   const response = await createSession({
     identifier: result.data.identifier,
-    password: "ljgq-nljq-zzqy-lsxd",
+    password: result.data.password,
   });
 
   console.log(response);
@@ -50,7 +46,6 @@ export async function signInAction(
     };
   }
 
-  console.log(response.value.data);
   cookies().set("auth", JSON.stringify(response.value.data), {
     maxAge: Infinity,
   });
