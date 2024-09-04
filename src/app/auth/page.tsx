@@ -1,4 +1,4 @@
-import { AuthForm } from "@/components/auth/auth-form";
+import { AuthForm } from "@/components/ui/auth/auth-form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function AuthPage() {

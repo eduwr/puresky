@@ -1,7 +1,6 @@
 "use client";
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -11,33 +10,55 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "../ui/button";
-
-const authSchema = z.object({
-  identifier: z.string().min(1),
-  password: z.string().min(1),
-  authFactorToken: z.string(),
-});
-
-type AuthData = z.infer<typeof authSchema>;
-
+import { Button } from "../button";
+import { AuthFormData, signInSchema } from "@/lib/schemas/auth";
+import { signInAction } from "@/app/actions/auth";
+import { useFormState } from "react-dom";
+import { useRef } from "react";
+import { AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "../alert";
 export const AuthForm = () => {
-  const form = useForm<AuthData>({
-    resolver: zodResolver(authSchema),
+  const [state, formAction] = useFormState(signInAction, {
+    message: "",
+  });
+  const form = useForm<AuthFormData>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
       identifier: "",
       password: "",
       authFactorToken: "",
+      ...(state?.fields ?? {}),
     },
   });
 
-  const onSubmit = (values: AuthData) => {
-    console.log(values);
-  };
+  const formRef = useRef<HTMLFormElement>(null);
   return (
     <Form {...form}>
-      <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
+      {state.message && !form.formState.isDirty && (
+        <Alert variant="destructive">
+          <AlertTriangle />
+          <AlertTitle>Try again</AlertTitle>
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
+      )}
+      {state.issues?.map((issue) => (
+        <Alert variant="destructive">
+          <AlertTriangle />
+          <AlertTitle>Validation error</AlertTitle>
+          <AlertDescription>{issue}</AlertDescription>
+        </Alert>
+      ))}
+      <form
+        ref={formRef}
+        className="space-y-8"
+        action={formAction}
+        onSubmit={(evt) => {
+          evt.preventDefault();
+          form.handleSubmit(() => {
+            formAction(new FormData(formRef.current!));
+          })(evt);
+        }}
+      >
         <FormField
           control={form.control}
           name="identifier"
