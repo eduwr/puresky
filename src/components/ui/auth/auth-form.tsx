@@ -34,14 +34,14 @@ export const AuthForm = () => {
   const formRef = useRef<HTMLFormElement>(null);
   return (
     <Form {...form}>
-      {state.message && !form.formState.isDirty && (
+      {state?.message && !form.formState.isDirty && (
         <Alert variant="destructive">
           <AlertTriangle />
           <AlertTitle>Try again</AlertTitle>
           <AlertDescription>{state.message}</AlertDescription>
         </Alert>
       )}
-      {state.issues?.map((issue) => (
+      {state?.issues?.map((issue) => (
         <Alert variant="destructive">
           <AlertTriangle />
           <AlertTitle>Validation error</AlertTitle>

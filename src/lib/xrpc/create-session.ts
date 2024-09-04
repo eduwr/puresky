@@ -1,27 +1,39 @@
-import { blueSkySocialAPI } from "../api/bluesky-social";
+import { fetchBsky } from "../api/bluesky-social";
+import { err, ok, Result } from "../common/error-handling";
 import { Session, sessionSchema } from "../schemas/session";
+import { ResponseError, ResponseSuccess } from "./response.type";
 
 export type CreateSessionInput = {
   identifier: string;
   password: string;
 };
+
 export const createSession = async ({
   identifier,
   password,
-}: CreateSessionInput): Promise<Session> => {
-  const { data } = await blueSkySocialAPI.post(
-    "com.atproto.server.createSession",
-    {
+}: CreateSessionInput): Promise<
+  Result<ResponseSuccess<Session>, ResponseError>
+> => {
+  const response = await fetchBsky("com.atproto.server.createSession", {
+    body: {
       identifier,
       password,
     },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    },
-  );
+    redirect: false,
+    method: "post",
+  });
+
+  if (!response.ok) {
+    return err({
+      status: response.status,
+      message:
+        response.status >= 500
+          ? "couldn't create session try again later"
+          : "invalid credentials",
+    });
+  }
+
+  const data = await response.json();
 
   const sessionData = {
     did: data.did,
@@ -30,5 +42,8 @@ export const createSession = async ({
     service: data.didDoc.service,
   };
 
-  return sessionSchema.parse(sessionData);
+  return ok({
+    status: response.status,
+    data: sessionSchema.parse(sessionData),
+  });
 };

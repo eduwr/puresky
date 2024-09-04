@@ -1,7 +1,7 @@
 "use server";
+import { isErr } from "@/lib/common/error-handling";
 import { signInSchema } from "@/lib/schemas/auth";
 import { createSession } from "@/lib/xrpc/create-session";
-import { AxiosError } from "axios";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -14,10 +14,11 @@ export type FormState = {
 export async function signInAction(
   _prevState: FormState,
   formData: FormData,
-): Promise<FormState> {
+): Promise<FormState | undefined> {
+  console.log("getting here");
   const data = Object.fromEntries(formData);
   const result = signInSchema.safeParse(data);
-  const cookieStore = cookies();
+  console.log(result);
   if (!result.success) {
     const fields: Record<string, string> = {};
     for (const key of Object.keys(formData)) {
@@ -33,27 +34,26 @@ export async function signInAction(
       ),
     };
   }
-  try {
-    const session = await createSession({
-      identifier: result.data.identifier,
-      password: result.data.password,
-    });
 
-    cookieStore.set("auth", JSON.stringify(session));
-  } catch (e) {
-    console.log(e);
-    if (e instanceof AxiosError) {
-      return {
-        message: e.response?.data.message ?? e.message,
-      };
-    }
+  console.log("before session");
+  // ljgq-nljq-zzqy-lsxd
+  const response = await createSession({
+    identifier: result.data.identifier,
+    password: "ljgq-nljq-zzqy-lsxd",
+  });
+
+  console.log(response);
+
+  if (isErr(response)) {
     return {
-      message: "Internal Server Error",
-      fields: {
-        identifier: "",
-        password: "",
-      },
+      message: response.error.message,
     };
   }
+
+  console.log(response.value.data);
+  cookies().set("auth", JSON.stringify(response.value.data), {
+    maxAge: Infinity,
+  });
+
   redirect("/dashboard");
 }
