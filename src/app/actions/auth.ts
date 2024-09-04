@@ -18,43 +18,42 @@ export async function signInAction(
   const data = Object.fromEntries(formData);
   const result = signInSchema.safeParse(data);
   const cookieStore = cookies();
-  if (result.success) {
-    try {
-      const session = await createSession({
-        identifier: result.data.identifier,
-        password: result.data.password,
-      });
+  if (!result.success) {
+    const fields: Record<string, string> = {};
+    for (const key of Object.keys(formData)) {
+      // @ts-expect-error implicitly has any type because of FormData
+      fields[key] = formData[key].toString();
+    }
 
-      cookieStore.set("auth", JSON.stringify(session));
+    return {
+      message: "Invalid credentials",
+      fields,
+      issues: result.error?.issues.map(
+        (issue) => `${issue.path}: ${issue.message}`,
+      ),
+    };
+  }
+  try {
+    const session = await createSession({
+      identifier: result.data.identifier,
+      password: result.data.password,
+    });
 
-      redirect("/dashboard");
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        return {
-          message: e.response?.data.message ?? e.message,
-        };
-      }
+    cookieStore.set("auth", JSON.stringify(session));
+  } catch (e) {
+    console.log(e);
+    if (e instanceof AxiosError) {
       return {
-        message: "Internal Server Error",
-        fields: {
-          identifier: "",
-          password: "",
-        },
+        message: e.response?.data.message ?? e.message,
       };
     }
+    return {
+      message: "Internal Server Error",
+      fields: {
+        identifier: "",
+        password: "",
+      },
+    };
   }
-
-  const fields: Record<string, string> = {};
-  for (const key of Object.keys(formData)) {
-    // @ts-expect-error implicitly has any type because of FormData
-    fields[key] = formData[key].toString();
-  }
-
-  return {
-    message: "Invalid credentials",
-    fields,
-    issues: result.error?.issues.map(
-      (issue) => `${issue.path}: ${issue.message}`,
-    ),
-  };
+  redirect("/dashboard");
 }

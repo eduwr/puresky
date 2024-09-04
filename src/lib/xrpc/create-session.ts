@@ -30,12 +30,5 @@ export const createSession = async ({
     service: data.didDoc.service,
   };
 
-  const session = sessionSchema.parse(sessionData);
-
-  blueSkySocialAPI.defaults.headers.common["Authorization"] =
-    `Bearer ${session.accessJwt}`;
-
-  blueSkySocialAPI.defaults.baseURL = session.service[0].serviceEndpoint;
-
-  return session;
+  return sessionSchema.parse(sessionData);
 };

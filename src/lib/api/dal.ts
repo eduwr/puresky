@@ -4,7 +4,7 @@ import "server-only";
 import { sessionSchema } from "../schemas/session";
 import { redirect } from "next/navigation";
 
-export const getSession = cache(async () => {
+export const getSession = cache(() => {
   const cookie = cookies().get("auth")?.value;
   const data = cookie && JSON.parse(cookie);
 
