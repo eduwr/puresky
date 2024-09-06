@@ -28,7 +28,7 @@ blueSkySocialAPI.interceptors.request.use(
 );
 
 type FetchOptions = {
-  body: Record<string, string>;
+  body: Record<string, any>;
   method: "get" | "post";
   headers: Record<string, string>;
   baseURL: string;

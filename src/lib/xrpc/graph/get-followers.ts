@@ -1,16 +1,15 @@
 import { fetchBsky } from "@/lib/api/bluesky-social";
 import { err, ok, Result } from "@/lib/common/error-handling";
 import { ResponseError, ResponseSuccess } from "../response.type";
-import { getFollowsSchema, FollowsData } from "@/lib/schemas/follow";
+import { getFollowersSchema, FollowersData } from "@/lib/schemas/followers";
 
 type Options = {
   cursor?: string;
 };
-
-export const getFollows = async (
+export const getFollowers = async (
   actor: string,
   options?: Options,
-): Promise<Result<ResponseSuccess<FollowsData>, ResponseError>> => {
+): Promise<Result<ResponseSuccess<FollowersData>, ResponseError>> => {
   if (!actor) throw new Error("getFollowers - Actor is required");
 
   const params = new URLSearchParams();
@@ -19,8 +18,11 @@ export const getFollows = async (
     params.append("cursor", options.cursor);
   }
 
-  const url = `app.bsky.graph.getFollows?${params.toString()}`;
+  const paramsString = params.toString();
+  console.log(paramsString);
+  const url = `app.bsky.graph.getFollowers?${params.toString()}`;
 
+  console.log("url ", url);
   const response = await fetchBsky(url);
 
   if (!response.ok) {
@@ -30,8 +32,9 @@ export const getFollows = async (
     });
   }
 
+  console.log("__RESP__", response);
   const data = await response.json();
-  const parsed = getFollowsSchema.safeParse(data);
+  const parsed = getFollowersSchema.safeParse(data);
 
   if (!parsed.success) {
     return err({
